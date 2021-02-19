@@ -1,5 +1,6 @@
 ![MSBuild](https://github.com/stjeong/RefOwner/workflows/MSBuild/badge.svg)
 ![GitHub](https://img.shields.io/github/license/stjeong/RefOwner)
+![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/stjeong/RefOwner)
 
 What is it?
 ================================
