@@ -21,10 +21,10 @@ jobs:
         include:
           - kind: x86
             target: x86
-            targetDir: ${{env.BUILD_CONFIGURATION}}
+            targetDir: Release
           - kind: x64
             target: x64
-            targetDir: x64\${{env.BUILD_CONFIGURATION}}
+            targetDir: x64\Release
 
     runs-on: windows-latest
     steps:
