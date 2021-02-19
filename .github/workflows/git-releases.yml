@@ -6,24 +6,62 @@ on:
 
 name: Create Release
 
+env:
+  SOLUTION_FILE_PATH: .
+  BUILD_CONFIGURATION: Release
+  ZIPFILENAME: RefOwner
+
 jobs:
   build:
     name: Create Release
+
+    strategy:
+      matrix:
+        kind: ['x86', 'x64']
+        include:
+          - kind: x86
+            target: x86
+            targetDir: ${{env.BUILD_CONFIGURATION}}
+          - kind: x64
+            target: x64
+            targetDir: x64\${{env.BUILD_CONFIGURATION}}
+
     runs-on: windows-latest
     steps:
+      - name: Install 7Zip PowerShell Module
+        shell: powershell
+        run: Install-Module 7Zip4PowerShell -Force -Verbose
+
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: Build
+        run: |
+          msbuild /m /p:PlatformTarget=${{matrix.target}};Platform=${{matrix.target}}; /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: actions/create-release@latest
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: ${{env.BUILD_CONFIGURATION}} ${{ github.ref }}
           body: |
-            Changes in this Release
-            - First Change
-            - Second Change
+            Automated Release by GitHub Action CI
           draft: false
           prerelease: false
+
+      - name: Zip Artifacts
+        run: powershell Compress-7Zip "${{matrix.targetDir}}" -ArchiveFileName "${{env.ZIPFILENAME}}.${{matrix.target}}.zip" -Format Zip
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{env.ZIPFILENAME}}.${{matrix.target}}.zip
+          asset_name: ${{env.ZIPFILENAME}}.${{matrix.target}}.zip
+          asset_content_type: application/zip
