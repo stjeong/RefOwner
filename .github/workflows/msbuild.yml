@@ -1,6 +1,16 @@
 name: MSBuild
 
-on: [push]
+on: 
+  push:
+    branches:
+      - master
+    tags-ignore:
+      - 'v*'      
+  pull_request:
+    branches:
+      - master
+    tags-ignore:
+      - 'v*'      
 
 env:
   # Path to the solution file relative to the root of the project.
