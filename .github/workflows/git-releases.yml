@@ -44,7 +44,7 @@ jobs:
 
       - name: Build
         run: |
-          msbuild /m /p:PlatformTarget=${{matrix.target}};Platform=${{matrix.target}}; /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+          msbuild /m /p:PlatformTarget=${{matrix.target}};Platform=${{matrix.target}} /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
 
       - name: Create Release
         id: create_release
