@@ -12,6 +12,26 @@ env:
   PRJNAME: RefOwner
 
 jobs:
+
+  create_release:
+    name: Create release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{env.BUILD_CONFIGURATION}} ${{ github.ref }}
+          body: |
+            Automated Release by GitHub Action CI
+          draft: false
+          prerelease: false
+
   build:
     name: Create Release
 
@@ -38,19 +58,6 @@ jobs:
       - name: Build
         run: |
           msbuild /m /p:PlatformTarget=${{matrix.kind}} /p:Platform=${{matrix.kind}} /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@latest
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: ${{env.BUILD_CONFIGURATION}} ${{ github.ref }}
-          body: |
-            Automated Release by GitHub Action CI
-          draft: false
-          prerelease: false
 
       - name: Zip Artifacts
         run: powershell Compress-7Zip "${{env.PRJNAME}}\bin\${{matrix.kind}}\${{env.BUILD_CONFIGURATION}}" -ArchiveFileName "${{env.PRJNAME}}.${{matrix.kind}}.zip" -Format Zip
