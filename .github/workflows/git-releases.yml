@@ -1,0 +1,67 @@
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+name: Create Release
+
+env:
+  SOLUTION_FILE_PATH: .
+  BUILD_CONFIGURATION: Release
+  ZIPFILENAME: RefOwner
+
+jobs:
+  build:
+    name: Create Release
+
+    strategy:
+      matrix:
+        kind: [x86, x64]
+
+    runs-on: windows-latest
+    steps:
+      - name: Install 7Zip PowerShell Module
+        shell: powershell
+        run: Install-Module 7Zip4PowerShell -Force
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Add MSBuild to PATH
+        uses: microsoft/setup-msbuild@v1
+
+      - name: Restore NuGet packages
+        working-directory: ${{env.GITHUB_WORKSPACE}}
+        run: nuget restore ${{env.SOLUTION_FILE_PATH}}
+
+      - name: Build
+        run: |
+          msbuild /m /p:PlatformTarget=${{matrix.kind}} /p:Platform=${{matrix.kind}} /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: ${{env.BUILD_CONFIGURATION}} ${{ github.ref }}
+          body: |
+            Automated Release by GitHub Action CI
+          draft: false
+          prerelease: false
+
+      - name: Zip Artifacts
+        run: powershell Compress-7Zip "${{matrix.kind}}\${{env.BUILD_CONFIGURATION}}" -ArchiveFileName "${{env.ZIPFILENAME}}.${{matrix.kind}}.zip" -Format Zip
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{env.ZIPFILENAME}}.${{matrix.kind}}.zip
+          asset_name: ${{env.ZIPFILENAME}}.${{matrix.kind}}.zip
+          asset_content_type: application/zip
