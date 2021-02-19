@@ -17,20 +17,13 @@ jobs:
 
     strategy:
       matrix:
-        kind: ['x86', 'x64']
-        include:
-          - kind: x86
-            target: x86
-            targetDir: Release
-          - kind: x64
-            target: x64
-            targetDir: x64\Release
+        kind: [x86, x64]
 
     runs-on: windows-latest
     steps:
       - name: Install 7Zip PowerShell Module
         shell: powershell
-        run: Install-Module 7Zip4PowerShell -Force -Verbose
+        run: Install-Module 7Zip4PowerShell -Force
 
       - name: Checkout code
         uses: actions/checkout@v2
@@ -44,7 +37,7 @@ jobs:
 
       - name: Build
         run: |
-          msbuild /m /p:PlatformTarget=${{matrix.target}};Platform=${{matrix.target}} /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+          msbuild /m /p:PlatformTarget=${{matrix.kind}};Platform=${{matrix.kind}} /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
 
       - name: Create Release
         id: create_release
@@ -60,7 +53,7 @@ jobs:
           prerelease: false
 
       - name: Zip Artifacts
-        run: powershell Compress-7Zip "${{matrix.targetDir}}" -ArchiveFileName "${{env.ZIPFILENAME}}.${{matrix.target}}.zip" -Format Zip
+        run: powershell Compress-7Zip "${{matrix.kind}}\${{env.BUILD_CONFIGURATION}}" -ArchiveFileName "${{env.ZIPFILENAME}}.${{matrix.kind}}.zip" -Format Zip
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -69,6 +62,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{env.ZIPFILENAME}}.${{matrix.target}}.zip
-          asset_name: ${{env.ZIPFILENAME}}.${{matrix.target}}.zip
+          asset_path: ./${{env.ZIPFILENAME}}.${{matrix.kind}}.zip
+          asset_name: ${{env.ZIPFILENAME}}.${{matrix.kind}}.zip
           asset_content_type: application/zip
