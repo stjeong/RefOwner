@@ -134,14 +134,6 @@ Total: 1
 Or, at this stage, you can find the GC root with "!gcroot 3bd5570" in windbg.
 
 
-Change Log
-================================
-
-1.0.0.0 - Feb 11, 2019
-
-* Initial checked-in (For Koreans, read [this article](http://www.sysnet.pe.kr/2/0/11809))
-
-
 Reqeuests or Contributing to Repository
 ================================
 If you need some features or whatever, make an issue at [https://github.com/stjeong/RefOwner/issues](https://github.com/stjeong/RefOwner/issues)
