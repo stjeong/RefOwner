@@ -33,7 +33,7 @@ jobs:
           prerelease: false
 
   build:
-    name: Release Build (x86, x64)
+    name: Release Build
     needs: create_release
 
     strategy:

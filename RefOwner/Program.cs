@@ -7,6 +7,8 @@ using System.Linq;
 
 namespace RefOwner
 {
+    // ClrMD를 이용해 메모리 덤프 파일로부터 특정 인스턴스를 참조하고 있는 소유자 확인
+    // ; https://www.sysnet.pe.kr/2/0/11809
     class Program
     {
         static string _platformPostfix = (IntPtr.Size == 4) ? "32" : "64";
